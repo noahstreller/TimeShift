@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:TimeShift/screens/TimeScreen.dart';
+import 'package:TimeShift/screens/TimerScreen.dart';
+import 'package:TimeShift/screens/WorldScreen.dart';
+import 'package:TimeShift/screens/ToolsScreen.dart';
+import 'package:TimeShift/screens/SettingsScreen.dart';
+import 'package:TimeShift/providers/ThemeProvider.dart';
+import 'package:provider/provider.dart';
+
 
 void main() {
   runApp(const TimeShiftApp());
@@ -16,18 +24,23 @@ class TimeShiftApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DynamicColorBuilder(builder: (lightColorScheme, darkColorScheme) {
-      return MaterialApp(
-        title: 'TimeShift',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: lightColorScheme ?? _defaultLightColorScheme,
-          useMaterial3: true,
+      return ChangeNotifierProvider(
+        create: (_) => ThemeProvider(context),
+        child: Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return MaterialApp(
+              title: 'TimeShift',
+              debugShowCheckedModeBanner: false,
+              theme: ThemeData(
+                colorScheme: themeProvider.isDarkMode
+                    ? darkColorScheme ?? _defaultDarkColorScheme
+                    : lightColorScheme ?? _defaultLightColorScheme,
+                useMaterial3: true,
+              ),
+              home: const TimeShiftHome(title: 'TimeShift'),
+            );
+          }
         ),
-        darkTheme: ThemeData(
-          colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
-          useMaterial3: true,
-        ),
-        home: const TimeShiftHome(title: 'Flutter Demo Home Page'),
       );
     });
   }
@@ -43,18 +56,22 @@ class TimeShiftHome extends StatefulWidget {
 
 class _TimeShiftHomeState extends State<TimeShiftHome> {
   String _screenTitle = "TimeShift";
-  int _counter = 0;
   int _selectedIndex = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  List screens = [
+    const TimeScreen(),
+    const TimerScreen(),
+    const WorldScreen(),
+    const ToolsScreen(),
+    const SettingsScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+      //harmonize dark gray with primary,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           _screenTitle,
@@ -62,45 +79,45 @@ class _TimeShiftHomeState extends State<TimeShiftHome> {
         ),
         centerTitle: false,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
+      body: screens[_selectedIndex],
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        onPressed: () {
+          setState(() {
+          });
+        },
+        tooltip: 'Refresh',
+        child: const Icon(Icons.refresh),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           setState(() {
             _selectedIndex = index;
-            _screenTitle = "Screen $index";
+            _screenTitle = [
+              "Time",
+              "Timer",
+              "World",
+              "Tools",
+              "Settings"
+            ][_selectedIndex];
           });
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.access_time),
+            label: 'Time',
           ),
           NavigationDestination(
-            icon: Icon(Icons.business),
-            label: 'Business',
+            icon: Icon(Icons.hourglass_bottom),
+            label: 'Timer',
           ),
           NavigationDestination(
-            icon: Icon(Icons.school),
-            label: 'School',
+            icon: Icon(Icons.public),
+            label: 'World',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.build),
+            label: 'Tools',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings),
