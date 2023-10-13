@@ -1,3 +1,4 @@
+import 'package:TimeShift/providers/LayoutProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,23 +15,26 @@ class SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    var isSwitched = themeProvider.isDarkMode;
+    final layoutProvider = Provider.of<LayoutProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
       body: Column(
         children: [
           ListTile(
             title: const Text('Dark Mode'),
             trailing: Switch(
-              value: isSwitched,
+              value: themeProvider.isDarkMode,
               onChanged: (value) {
-                if (isSwitched != value){
-                  themeProvider.toggleTheme();
-                  isSwitched = value;
-                }
+                themeProvider.toggleTheme();
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Display Milliseconds'),
+            trailing: Switch(
+              value: layoutProvider.isMillisecondsOn,
+              onChanged: (value) {
+                layoutProvider.toggleMilliseconds();
               },
             ),
           ),

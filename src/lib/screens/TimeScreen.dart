@@ -1,14 +1,30 @@
 import 'dart:async';
+import 'package:TimeShift/Dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class TimeScreen extends StatefulWidget {
+import '../providers/LayoutProvider.dart';
+
+class TimeScreen extends StatelessWidget {
   const TimeScreen({super.key});
 
   @override
-  TimeScreenState createState() => TimeScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => LayoutProvider(),
+      child: const TimeScreenBody(),
+    );
+  }
 }
 
-class TimeScreenState extends State<TimeScreen> {
+class TimeScreenBody extends StatefulWidget {
+  const TimeScreenBody({super.key});
+
+  @override
+  TimeScreenBodyState createState() => TimeScreenBodyState();
+}
+
+class TimeScreenBodyState extends State<TimeScreenBody> {
   Column _currentTime = const Column();
   late Timer _timer;
 
@@ -20,14 +36,35 @@ class TimeScreenState extends State<TimeScreen> {
     });
   }
 
-  // Function to update the current time
   void _updateTime() {
+    final layoutProvider = Provider.of<LayoutProvider>(context, listen: false);
     final now = DateTime.now();
     double clockFontSize = 40;
-    final hour = Text(now.hour.toString().padLeft(2, '0'), style: TextStyle(fontSize: clockFontSize),);
-    final minute = Text(now.minute.toString().padLeft(2, '0'), style: TextStyle(fontSize: clockFontSize),);
-    final second = Text(now.second.toString().padLeft(2, '0'), style: TextStyle(fontSize: clockFontSize),);
-    final millisecond = Text(now.millisecond.toString().padLeft(3, '0'), style: TextStyle(fontSize: clockFontSize, color: Colors.grey),);
+
+    TextStyle clockFontStyle = TextStyle(fontSize: clockFontSize, fontFamily: "Roboto", letterSpacing: 1.0);
+    TextStyle subtleClockFontStyle = TextStyle(fontSize: clockFontSize, color: Colors.grey.withOpacity(0.85), fontFamily: "Roboto", letterSpacing: 1.0);
+
+    final hour = Text(now.hour.toString().padLeft(2, '0'), style: clockFontStyle,);
+    final minute = Text(now.minute.toString().padLeft(2, '0'), style: clockFontStyle,);
+    final second = Text(now.second.toString().padLeft(2, '0'), style: clockFontStyle,);
+    final millisecond = Text(now.millisecond.toString().padLeft(3, '0'), style: subtleClockFontStyle,);
+
+    final semicolonSeparator = Text(":", style: subtleClockFontStyle,);
+    final periodSeparator = Text(".", style: subtleClockFontStyle,);
+
+    final timeWidgets = <Widget>[
+      hour,
+      semicolonSeparator,
+      minute,
+      semicolonSeparator,
+      second,
+    ];
+
+    if (layoutProvider.isMillisecondsOn) {
+      timeWidgets.add(periodSeparator);
+      timeWidgets.add(millisecond);
+    }
+
     final formattedTime = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -42,16 +79,8 @@ class TimeScreenState extends State<TimeScreen> {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            hour,
-            Text(":", style: TextStyle(fontSize: clockFontSize, color: Colors.grey.withOpacity(0.8))),
-            minute,
-            Text(":", style: TextStyle(fontSize: clockFontSize, color: Colors.grey.withOpacity(0.8))),
-            second,
-            Text(".", style: TextStyle(fontSize: clockFontSize, color: Colors.grey.withOpacity(0.8))),
-            millisecond,
-          ]
-        ),
+          children: timeWidgets,
+        )
       ],
     );
 
@@ -62,29 +91,37 @@ class TimeScreenState extends State<TimeScreen> {
 
   @override
   void dispose() {
-    // Cancel the timer in the dispose method to prevent memory leaks
     _timer.cancel();
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _currentTime,
-              ],
-            ),
-          ),
-        ],
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showTimeZoneSelectionDialog(context);
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: Consumer<LayoutProvider>(
+        builder: (context, layoutProvider, child) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _currentTime,
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

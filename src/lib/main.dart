@@ -1,3 +1,4 @@
+import 'package:TimeShift/providers/LayoutProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:TimeShift/screens/TimeScreen.dart';
@@ -24,8 +25,11 @@ class TimeShiftApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DynamicColorBuilder(builder: (lightColorScheme, darkColorScheme) {
-      return ChangeNotifierProvider(
-        create: (_) => ThemeProvider(context),
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider(context)),
+          ChangeNotifierProvider(create: (_) => LayoutProvider()),
+        ],
         child: Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {
             return MaterialApp(
@@ -59,7 +63,7 @@ class _TimeShiftHomeState extends State<TimeShiftHome> {
   int _selectedIndex = 0;
 
   List screens = [
-    const TimeScreen(),
+    const TimeScreenBody(),
     const TimerScreen(),
     const WorldScreen(),
     const ToolsScreen(),
@@ -80,14 +84,6 @@ class _TimeShiftHomeState extends State<TimeShiftHome> {
         centerTitle: false,
       ),
       body: screens[_selectedIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-          });
-        },
-        tooltip: 'Refresh',
-        child: const Icon(Icons.refresh),
-      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
